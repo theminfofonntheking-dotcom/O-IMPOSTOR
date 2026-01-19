@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>INFILTRADO - VOTAÇÃO ATIVA</title>
+    <title>O IMPOSTOR 🔪</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { background: #0f0f1a; color: #fff; font-family: 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
@@ -10,6 +10,7 @@
         .active { display: block !important; }
         .screen { display: none; }
         
+        /* Letreiro de Aviso */
         #marquee-container { width: 100%; overflow: hidden; background: #e74c3c; color: white; position: absolute; top: 0; left: 0; border-radius: 20px 20px 0 0; display: none; padding: 5px 0; z-index: 10; }
         .marquee-text { display: inline-block; white-space: nowrap; animation: marquee 8s linear infinite; font-weight: bold; }
         @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
@@ -20,55 +21,69 @@
         #timer-display { font-size: 28px; text-align: center; color: #f39c12; font-weight: bold; }
         #status-msg { text-align: center; color: #43b581; margin-bottom: 5px; font-weight: bold; }
         #chat-box { height: 220px; overflow-y: auto; background: #0f0f1a; padding: 15px; border-radius: 10px; margin: 10px 0; border: 1px solid #3b3b55; }
-        .msg { margin-bottom: 8px; border-bottom: 1px solid #222; padding-bottom: 4px; word-wrap: break-word; font-size: 14px; }
+        .msg { margin-bottom: 8px; border-bottom: 1px solid #222; padding-bottom: 4px; word-wrap: break-word; }
         .role-area { padding: 12px; border-radius: 10px; text-align: center; font-weight: bold; margin-bottom: 5px; }
         
         .action-btns { display: flex; gap: 5px; margin-bottom: 5px; }
         button.imp-btn { background: #e74c3c; flex: 1; font-size: 12px; }
         button.vote-btn { background: #f1c40f; color: #000; flex: 1; font-size: 12px; }
+        #room-info { background: #2a2a40; padding: 10px; border-radius: 10px; font-size: 12px; text-align: center; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
     <div id="game-container">
-        <div id="marquee-container"><div class="marquee-text" id="marquee-val">JOGADOR NÃO RESPONDEU? ANDA LOGO!</div></div>
+        <div id="marquee-container"><div class="marquee-text" id="marquee-val">JOGADOR DEMORANDO! ANDA LOGO!</div></div>
 
         <div id="setup-screen" class="screen active">
-            <h1 style="text-align: center; color: #f39c12; margin: 0 0 10px 0;">🕵️ Infiltrado</h1>
-            <input type="text" id="player-name" placeholder="Seu Nome (Máx 20)" maxlength="20">
-            <select id="max-players">
-                <option value="2">2 Jogadores</option>
-                <option value="3" selected>3 Jogadores</option>
-            </select>
-            <select id="game-mode">
-                <option value="turno">MODO TURNO (20s)</option>
-                <option value="livre">MODO CHAT LIVRE</option>
-            </select>
+            <h1 style="text-align: center; color: #e74c3c; margin: 0 0 10px 0;">O IMPOSTOR 🔪</h1>
+            <input type="text" id="player-name" placeholder="Seu Nome" maxlength="20">
+            
+            <div style="background: #2a2a40; padding: 10px; border-radius: 10px; margin: 5px 0;">
+                <label style="font-size: 11px; color: #888;">Nº DE JOGADORES:</label>
+                <select id="max-players">
+                    <option value="2">2 Jogadores (X1)</option>
+                    <option value="3" selected>3 Jogadores</option>
+                    <option value="4">4 Jogadores</option>
+                </select>
+                <label style="font-size: 11px; color: #888;">MODO:</label>
+                <select id="game-mode">
+                    <option value="turno">TURNO (20s)</option>
+                    <option value="livre">CHAT LIVRE</option>
+                </select>
+            </div>
+
             <button onclick="setupHost()" style="background:#43b581">CRIAR SALA</button>
+            <div style="text-align: center; margin: 10px 0; font-size: 12px;">OU</div>
             <input type="text" id="join-id" placeholder="ID da Sala">
             <input type="password" id="join-pass" placeholder="Senha">
-            <button onclick="joinRoom()">ENTRAR</button>
+            <button onclick="joinRoom()">ENTRAR NO JOGO</button>
         </div>
 
         <div id="game-screen" class="screen">
+            <div id="room-info" style="display:none;">
+                ID: <span id="display-id">---</span> 
+                <button onclick="copyInviteLink()" style="padding: 5px; margin: 0; font-size: 10px; background: #7289da;">📋 COPIAR LINK</button>
+            </div>
+            
             <div id="timer-display">--</div>
-            <div id="status-msg">Aguardando...</div>
+            <div id="status-msg">Aguardando jogadores...</div>
             <div id="role-display" class="role-area" style="background: #34495e;">-</div>
             
             <div class="action-btns">
                 <button id="btn-guess" class="imp-btn" onclick="impostorGuess()" style="display:none;">ADIVINHAR 💡</button>
-                <button id="btn-vote" class="vote-btn" onclick="openVote()">VOTAR NO IMPOSTOR ⚖️</button>
+                <button id="btn-vote" class="vote-btn" onclick="openVote()">VOTAR ⚖️</button>
             </div>
 
             <div id="chat-box"></div>
             
             <div id="input-area" style="display: flex; gap: 5px;">
-                <input type="text" id="chat-input" placeholder="Sua pista...">
+                <input type="text" id="chat-input" placeholder="Escreva aqui...">
                 <button id="btn-send" onclick="sendMsg()" style="width:80px; background:#f39c12;">ENVIAR</button>
             </div>
 
             <div id="replay-section" style="display:none; margin-top: 10px;">
-                <button onclick="voteReplay()" style="background: #27ae60;">JOGAR DE NOVO</button>
+                <button onclick="location.reload()" style="background: #27ae60;">SAIR / NOVA SALA</button>
             </div>
         </div>
     </div>
@@ -76,30 +91,38 @@
 <script>
     let peer = new Peer(), conn, myId, isHost = false, amIImpostor = false;
     let roomPass = "", players = [], maxPlayers = 3, gameMode = "turno", turnIndex = 0;
-    let words = ["TABLET", "CAFÉ", "TELEVISÃO", "PIZZA", "CELULAR", "GELADEIRA", "FOGO", "BOLO", "SORVETE", "PRAIA", "CARRO"];
+    let words = ["TABLET", "CAFÉ", "TELEVISÃO", "PIZZA", "CELULAR", "GELADEIRA", "FOGO", "CARRO", "SAPATO", "BOLO", "XBOX"];
     let currentWord = "", turnTimer, votes = {}, allPlayers = [];
 
-    peer.on('open', id => myId = id);
+    peer.on('open', id => {
+        myId = id;
+        // Checar se entrou via link
+        const urlParams = new URLSearchParams(window.location.search);
+        if(urlParams.has('room')) document.getElementById('join-id').value = urlParams.get('room');
+    });
 
     function setupHost() {
-        const p = prompt("Senha:"); if(!p) return;
+        const p = prompt("Crie uma senha para a sala:"); if(!p) return;
         roomPass = p; isHost = true;
         maxPlayers = parseInt(document.getElementById('max-players').value);
         gameMode = document.getElementById('game-mode').value;
+        
+        document.getElementById('display-id').innerText = myId;
+        document.getElementById('room-info').style.display = 'block';
         showScreen('game-screen');
-        updateLobby();
+        
         peer.on('connection', c => {
             c.on('data', data => {
                 if(data.type === 'auth') {
-                    if(data.pass === roomPass) {
+                    if(data.pass === roomPass && players.length < maxPlayers - 1) {
                         players.push({id: c.peer, name: data.name, conn: c});
                         c.send({type: 'auth_ok', max: maxPlayers, mode: gameMode});
+                        addMsg("SISTEMA", data.name + " entrou!");
                         updateLobby();
                         if(players.length === maxPlayers - 1) startGame();
                     } else c.send({type: 'auth_fail'});
                 }
                 if(data.type === 'chat') handleIncomingChat(data);
-                if(data.type === 'replay_vote') handleReplayVote();
                 if(data.type === 'guess') checkGuess(data.word, data.name);
                 if(data.type === 'vote_cast') handleVoteCast(data.target, data.voter);
             });
@@ -107,23 +130,25 @@
     }
 
     function joinRoom() {
-        const hId = document.getElementById('join-id').value, ps = document.getElementById('join-pass').value;
+        const hId = document.getElementById('join-id').value;
+        const ps = document.getElementById('join-pass').value;
+        const n = document.getElementById('player-name').value || "Jogador";
         conn = peer.connect(hId);
-        conn.on('open', () => conn.send({type: 'auth', pass: ps, name: document.getElementById('player-name').value}));
+        conn.on('open', () => conn.send({type: 'auth', pass: ps, name: n}));
         conn.on('data', data => {
             if(data.type === 'auth_ok') { maxPlayers = data.max; gameMode = data.mode; showScreen('game-screen'); }
             if(data.type === 'start') handleStart(data);
             if(data.type === 'chat') addMsg(data.name, data.text);
             if(data.type === 'turn') updateTurnUI(data.name);
             if(data.type === 'end') endGame(data.msg);
-            if(data.type === 'reset') resetGameUI();
         });
     }
 
     function startGame() {
         currentWord = words[Math.floor(Math.random()*words.length)];
         const impIdx = Math.floor(Math.random() * maxPlayers);
-        allPlayers = [{id: myId, name: document.getElementById('player-name').value, isImp: (impIdx === 0)}, ...players.map((p, i) => ({id: p.id, name: p.name, isImp: (impIdx === i+1)}))];
+        allPlayers = [{id: myId, name: document.getElementById('player-name').value, isImp: (impIdx === 0)}, 
+                      ...players.map((p, i) => ({id: p.id, name: p.name, isImp: (impIdx === i+1)}))];
         
         players.forEach((p, i) => {
             p.conn.send({type: 'start', isImp: (impIdx === i+1), word: currentWord, all: allPlayers});
@@ -137,45 +162,59 @@
         d.innerText = amIImpostor ? "VOCÊ É O IMPOSTOR!" : "PALAVRA: " + currentWord;
         d.style.background = amIImpostor ? "#e74c3c" : "#27ae60";
         document.getElementById('btn-guess').style.display = amIImpostor ? "block" : "none";
-        document.getElementById('replay-section').style.display = 'none';
         document.getElementById('btn-vote').disabled = false;
         
         if(gameMode === 'turno') { turnIndex = 0; if(isHost) startTurnCycle(); }
         else { document.getElementById('timer-display').innerText = "LIVRE"; document.getElementById('btn-send').disabled = false; }
     }
 
+    function sendMsg() {
+        const input = document.getElementById('chat-input');
+        const text = input.value.trim();
+        if(!text) return;
+        const name = document.getElementById('player-name').value || "Anon";
+        
+        if(isHost) { handleIncomingChat({name, text}); } 
+        else { conn.send({type: 'chat', name, text}); }
+        
+        input.value = ""; // LIMPA O CHAT AO ENVIAR
+        if(gameMode === 'turno') hideMarquee();
+    }
+
+    function handleIncomingChat(data) {
+        addMsg(data.name, data.text);
+        if(isHost) {
+            players.forEach(p => p.conn.send({type: 'chat', name: data.name, text: data.text}));
+            if(gameMode === 'turno') nextTurn();
+        }
+    }
+
     function openVote() {
         let options = allPlayers.map(p => p.name);
-        let target = prompt("Em quem você quer votar para expulsar? \nOpções: " + options.join(", "));
+        let target = prompt("QUEM É O IMPOSTOR? \n" + options.join(", "));
         if(!target) return;
-        target = target.toUpperCase();
-        const found = allPlayers.find(p => p.name.toUpperCase() === target);
-        
+        const found = allPlayers.find(p => p.name.toUpperCase() === target.toUpperCase());
         if(found) {
-            document.getElementById('btn-vote').disabled = true;
-            if(isHost) handleVoteCast(found.name, "Você");
+            if(isHost) handleVoteCast(found.name, "Host");
             else conn.send({type: 'vote_cast', target: found.name, voter: document.getElementById('player-name').value});
-        } else alert("Nome não encontrado!");
+            document.getElementById('btn-vote').disabled = true;
+        }
     }
 
     function handleVoteCast(target, voter) {
-        addMsg("SISTEMA", `${voter} votou em ${target}!`);
+        addMsg("VOTO", `${voter} votou em ${target}`);
         votes[target] = (votes[target] || 0) + 1;
-        
         const majority = Math.ceil(maxPlayers / 2);
-        if(votes[target] >= majority) {
+        if(votes[target] >= (maxPlayers === 2 ? 1 : majority)) {
             const playerObj = allPlayers.find(p => p.name === target);
-            if(playerObj.isImp) {
-                relayEnd(`OS INOCENTES VENCERAM! ${target} era o impostor!`);
-            } else {
-                relayEnd(`O IMPOSTOR VENCEU! Vocês expulsaram o inocente ${target}!`);
-            }
+            if(playerObj.isImp) relayEnd(`VITÓRIA! ${target} era o IMPOSTOR! 🔪`);
+            else relayEnd(`DERROTA! ${target} era INOCENTE! O impostor venceu.`);
         }
     }
 
     function checkGuess(g, name) {
-        if(g.includes(currentWord)) relayEnd(`IMPOSTOR (${name}) GANHOU! Descobriu que era ${currentWord}`);
-        else relayEnd(`IMPOSTOR ERROU! Inocentes ganharam! Era ${currentWord}`);
+        if(g.toUpperCase().includes(currentWord)) relayEnd(`O IMPOSTOR (${name}) DESCOBRIU! Era ${currentWord}!`);
+        else relayEnd(`O IMPOSTOR (${name}) ERROU! Era ${currentWord}!`);
     }
 
     function relayEnd(msg) {
@@ -185,12 +224,11 @@
 
     function endGame(msg) {
         clearInterval(turnTimer); hideMarquee();
-        addMsg("SISTEMA", msg);
+        addMsg("FIM", msg);
         document.getElementById('replay-section').style.display = 'block';
-        document.getElementById('btn-vote').disabled = true;
+        document.getElementById('status-msg').innerText = "FIM DE JOGO";
     }
 
-    // --- MANTENDO LÓGICA DE TURNOS E CHAT ---
     function startTurnCycle() {
         const p = allPlayers[turnIndex];
         if(isHost) players.forEach(c => c.conn.send({type: 'turn', name: p.name}));
@@ -202,29 +240,37 @@
             if(time <= 0) { clearInterval(turnTimer); nextTurn(); }
         }, 1000);
     }
-    function nextTurn() { hideMarquee(); turnIndex = (turnIndex + 1) % maxPlayers; startTurnCycle(); }
+
+    function nextTurn() { turnIndex = (turnIndex + 1) % maxPlayers; startTurnCycle(); }
+
     function updateTurnUI(name) {
         const isMyTurn = (name === document.getElementById('player-name').value);
         document.getElementById('status-msg').innerText = isMyTurn ? "SUA VEZ!" : "Vez de: " + name;
         document.getElementById('btn-send').disabled = !isMyTurn;
     }
-    function showMarquee(name) { document.getElementById('marquee-container').style.display = 'block'; document.getElementById('marquee-val').innerText = `${name.toUpperCase()} ANDA LOGO!`; }
+
+    function addMsg(n, t) {
+        const b = document.getElementById('chat-box');
+        b.innerHTML += `<div class="msg"><b>${n}:</b> ${t}</div>`;
+        b.scrollTop = b.scrollHeight;
+    }
+
+    function showMarquee(name) { document.getElementById('marquee-container').style.display = 'block'; document.getElementById('marquee-val').innerText = `${name.toUpperCase()} ANDA LOGO! O TEMPO ESTÁ ACABANDO!`; }
     function hideMarquee() { document.getElementById('marquee-container').style.display = 'none'; }
-    function sendMsg() {
-        const val = document.getElementById('chat-input').value; if(!val) return;
-        const name = document.getElementById('player-name').value;
-        if(isHost) { handleIncomingChat({name, text: val}); } else { conn.send({type: 'chat', name, text: val}); }
-        document.getElementById('chat-input').value = "";
-    }
-    function handleIncomingChat(data) { 
-        addMsg(data.name, data.text); 
-        if(isHost) { players.forEach(p => p.conn.send({type: 'chat', name: data.name, text: data.text})); if(gameMode === 'turno') nextTurn(); }
-    }
-    function addMsg(n, t) { const b = document.getElementById('chat-box'); b.innerHTML += `<div class="msg"><b>${n}:</b> ${t}</div>`; b.scrollTop = b.scrollHeight; }
-    function updateLobby() { document.getElementById('status-msg').innerText = `Lobby: ${players.length+1}/${maxPlayers}`; }
     function showScreen(s) { document.querySelectorAll('.screen').forEach(d => d.classList.remove('active')); document.getElementById(s).classList.add('active'); }
-    function copyLink() { navigator.clipboard.writeText(window.location.href.split('?')[0] + "?room=" + myId); alert("Link copiado!"); }
-    function impostorGuess() { const g = prompt("A palavra é:").toUpperCase(); if(!g) return; if(isHost) checkGuess(g, "Você"); else conn.send({type: 'guess', word: g, name: document.getElementById('player-name').value}); }
+    function updateLobby() { document.getElementById('status-msg').innerText = `Jogadores: ${players.length+1}/${maxPlayers}`; }
+    
+    function copyInviteLink() {
+        const link = window.location.href.split('?')[0] + "?room=" + myId;
+        navigator.clipboard.writeText(link);
+        alert("Link de convite copiado! Mande para seu amigo.");
+    }
+    
+    function impostorGuess() {
+        const g = prompt("Qual é a palavra?");
+        if(!g) return;
+        if(isHost) checkGuess(g, "Você"); else conn.send({type: 'guess', word: g, name: document.getElementById('player-name').value});
+    }
 </script>
 </body>
 </html>
