@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>O IMPOSTOR 🔪 VOICE</title>
+    <title>O IMPOSTOR 🔪</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { background: #0f0f1a; color: #fff; font-family: 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
@@ -10,223 +10,227 @@
         .active { display: block !important; }
         .screen { display: none; }
         
-        /* Painel de Configurações */
-        #settings-panel { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; background: #2a2a40; padding: 20px; border-radius: 15px; border: 2px solid #7289da; z-index: 100; box-shadow: 0 0 50px #000; }
-        .close-settings { float: right; cursor: pointer; color: #ff4757; font-weight: bold; }
-        
-        .config-btn { position: absolute; top: 15px; right: 15px; font-size: 24px; cursor: pointer; background: none; border: none; padding: 0; width: auto; margin: 0; }
+        /* Painel Config */
+        #settings-panel { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; background: #2a2a40; padding: 20px; border-radius: 15px; border: 2px solid #e74c3c; z-index: 100; box-shadow: 0 0 50px #000; }
+        .close-btn { float: right; cursor: pointer; font-size: 20px; color: #ff4757; }
 
         input, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: none; background: #2a2a40; color: #fff; font-size: 16px; box-sizing: border-box; }
         button { width: 100%; padding: 14px; border-radius: 10px; border: none; background: #7289da; color: white; font-weight: bold; cursor: pointer; margin-top: 10px; }
         
-        #player-counter { background: #34495e; padding: 5px 15px; border-radius: 20px; font-size: 14px; display: inline-block; margin-bottom: 10px; }
-        #timer-display { font-size: 28px; text-align: center; color: #f39c12; font-weight: bold; }
-        #status-msg { text-align: center; color: #43b581; margin-bottom: 5px; font-weight: bold; }
-        #chat-box { height: 180px; overflow-y: auto; background: #0f0f1a; padding: 10px; border-radius: 10px; margin: 10px 0; border: 1px solid #3b3b55; }
-        .msg { margin-bottom: 8px; border-bottom: 1px solid #222; padding-bottom: 4px; font-size: 13px; }
+        #player-counter { background: #e74c3c; padding: 5px 15px; border-radius: 20px; font-size: 13px; margin-bottom: 10px; font-weight: bold; }
+        #chat-box { height: 200px; overflow-y: auto; background: #0f0f1a; padding: 10px; border-radius: 10px; margin: 10px 0; border: 1px solid #3b3b55; }
+        .msg { margin-bottom: 8px; border-bottom: 1px solid #222; padding-bottom: 4px; font-size: 14px; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
-        .switch { display: flex; align-items: center; justify-content: space-between; margin: 15px 0; background: #1c1c2d; padding: 10px; border-radius: 8px; }
+        .config-icon { position: absolute; top: 15px; right: 15px; font-size: 24px; cursor: pointer; z-index: 50; }
+        .audio-status { font-size: 12px; color: #43b581; text-align: center; }
     </style>
 </head>
 <body>
 
     <div id="game-container">
-        <button class="config-btn" onclick="toggleSettings()">⚙️</button>
+        <div class="config-icon" onclick="toggleSettings()">⚙️</div>
 
         <div id="settings-panel">
-            <span class="close-settings" onclick="toggleSettings()">X</span>
-            <h3 style="margin-top:0">Configurações</h3>
-            <div class="switch">
-                <span>Mutar Áudio 🔇</span>
-                <input type="checkbox" id="mute-toggle" style="width: auto;" onchange="updateMute()">
+            <span class="close-btn" onclick="toggleSettings()">✖</span>
+            <h2 style="margin: 0 0 15px 0; color: #e74c3c;">Painel</h2>
+            
+            <label>Seu País:</label>
+            <select id="country-select">
+                <option value="🇧🇷">Brasil 🇧🇷</option>
+                <option value="🇺🇸">EUA 🇺🇸</option>
+                <option value="🇵🇹">Portugal 🇵🇹</option>
+                <option value="🇦🇷">Argentina 🇦🇷</option>
+                <option value="🇪🇸">Espanha 🇪🇸</option>
+                <option value="🇫🇷">França 🇫🇷</option>
+                <option value="🇮🇹">Itália 🇮🇹</option>
+                <option value="🇯🇵">Japão 🇯🇵</option>
+            </select>
+
+            <div style="background: #1c1c2d; padding: 10px; border-radius: 10px; margin-top: 10px;">
+                <div style="display:flex; justify-content: space-between; align-items: center;">
+                    <span>Áudio do Jogo</span>
+                    <button id="mute-btn" onclick="toggleMute()" style="width: auto; padding: 5px 15px; margin: 0; background: #43b581;">LIGADO 🔊</button>
+                </div>
             </div>
-            <p style="font-size: 10px; color: #888;">Se mutar, você não ouvirá ninguém e seu mic será desligado.</p>
-            <button onclick="toggleSettings()" style="background: #43b581;">SALVAR</button>
+            <button onclick="toggleSettings()" style="background: #e74c3c; margin-top: 20px;">FECHAR</button>
         </div>
 
         <div id="setup-screen" class="screen active">
-            <h1 style="text-align: center; color: #e74c3c; margin: 0 0 10px 0;">O IMPOSTOR 🔪</h1>
-            <input type="text" id="player-name" placeholder="Seu Nome" maxlength="15">
+            <h1 style="text-align: center; color: #e74c3c; margin-bottom: 20px;">O IMPOSTOR 🔪</h1>
+            <input type="text" id="player-name" placeholder="Seu Nome..." maxlength="12">
             
             <div style="background: #2a2a40; padding: 10px; border-radius: 10px;">
-                <label style="font-size: 11px; color: #888;">JOGADORES:</label>
-                <select id="max-players"><option value="2">2 (X1)</option><option value="3" selected>3 Jogadores</option></select>
-                <label style="font-size: 11px; color: #888;">MODO:</label>
-                <select id="game-mode"><option value="turno">TURNO (20s)</option><option value="livre">CHAT LIVRE</option></select>
+                <label style="font-size: 11px; color: #888;">QUANTOS JOGADORES NA SALA?</label>
+                <select id="max-players">
+                    <option value="2">2 Jogadores (X1)</option>
+                    <option value="3" selected>3 Jogadores</option>
+                    <option value="4">4 Jogadores</option>
+                    <option value="5">5 Jogadores</option>
+                </select>
             </div>
 
             <button onclick="setupHost()" style="background:#43b581">CRIAR SALA</button>
+            <div style="text-align: center; margin: 10px 0; color: #888;">--- OU ---</div>
             <input type="text" id="join-id" placeholder="ID da Sala">
-            <input type="password" id="join-pass" placeholder="Senha">
-            <button onclick="joinRoom()">ENTRAR NO JOGO</button>
+            <button onclick="joinRoom()">ENTRAR</button>
         </div>
 
         <div id="game-screen" class="screen">
-            <center><div id="player-counter">Aguardando: 1/--</div></center>
-            <div id="timer-display">--</div>
-            <div id="status-msg">Conectando...</div>
+            <center><div id="player-counter">Players: 1/--</div></center>
+            <div id="status-msg" style="text-align: center; font-weight: bold; color: #f1c40f;">Aguardando...</div>
+            <div id="role-display" style="padding: 10px; text-align: center; border-radius: 10px; margin: 10px 0; font-weight: bold;">-</div>
             
             <div id="chat-box"></div>
             
             <div style="display:flex; gap:5px">
-                <input type="text" id="chat-input" placeholder="Pista...">
+                <input type="text" id="chat-input" placeholder="Digite uma pista...">
                 <button onclick="sendMsg()" style="width:70px; margin:8px 0; background:#f39c12">OK</button>
             </div>
 
             <button id="btn-guess" style="display:none; background:#e74c3c" onclick="impostorGuess()">ADIVINHAR 💡</button>
             <button id="btn-vote" style="background:#f1c40f; color:#000" onclick="openVote()">VOTAR ⚖️</button>
-            <button id="copy-btn" style="background: #555; font-size: 10px;" onclick="copyInviteLink()">📋 LINK</button>
         </div>
     </div>
 
 <script>
     let peer = new Peer(), conn, myId, isHost = false, amIImpostor = false;
-    let players = [], maxPlayers = 3, gameMode = "turno", turnIndex = 0;
-    let words = ["TABLET", "CAFÉ", "TELEVISÃO", "PIZZA", "CELULAR", "GELADEIRA", "FOGO", "XBOX", "BOLO"];
-    let currentWord = "", turnTimer, allPlayers = [], myStream, isMuted = false;
+    let players = [], maxPlayers = 3, turnIndex = 0;
+    let words = ["TABLET", "FOGO", "PIZZA", "CELULAR", "GELADEIRA", "CAFÉ", "BOLO", "XBOX", "CARRO"];
+    let currentWord = "", myStream, isMuted = false;
 
-    peer.on('open', id => {
-        myId = id;
-        const urlParams = new URLSearchParams(window.location.search);
-        if(urlParams.has('room')) document.getElementById('join-id').value = urlParams.get('room');
-    });
+    peer.on('open', id => myId = id);
 
     function toggleSettings() {
         const p = document.getElementById('settings-panel');
         p.style.display = p.style.display === 'block' ? 'none' : 'block';
     }
 
-    function updateMute() {
-        isMuted = document.getElementById('mute-toggle').checked;
-        if(myStream) {
-            myStream.getAudioTracks().forEach(track => track.enabled = !isMuted);
-        }
+    function toggleMute() {
+        isMuted = !isMuted;
+        const btn = document.getElementById('mute-btn');
+        btn.innerText = isMuted ? "MUTADO 🔇" : "LIGADO 🔊";
+        btn.style.background = isMuted ? "#ff4757" : "#43b581";
+        if(myStream) myStream.getAudioTracks().forEach(t => t.enabled = !isMuted);
     }
 
-    async function initVoice() {
+    async function initAudio() {
         try {
             myStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            updateMute();
             peer.on('call', call => {
                 call.answer(myStream);
                 call.on('stream', remoteStream => {
                     const audio = new Audio(); audio.srcObject = remoteStream;
-                    if(!isMuted) audio.play();
+                    audio.play();
                 });
             });
-        } catch (e) { console.log("Sem mic"); }
+        } catch (e) { console.warn("Sem áudio."); }
     }
 
     async function setupHost() {
-        const p = prompt("Senha:"); if(!p) return;
-        await initVoice(); isHost = true;
+        await initAudio();
+        isHost = true;
         maxPlayers = parseInt(document.getElementById('max-players').value);
-        gameMode = document.getElementById('game-mode').value;
         showScreen('game-screen');
         updateCounter();
 
         peer.on('connection', c => {
             c.on('data', data => {
                 if(data.type === 'auth') {
-                    players.push({id: c.peer, name: data.name, conn: c});
-                    c.send({type: 'auth_ok', max: maxPlayers, mode: gameMode});
+                    players.push({id: c.peer, name: data.name, country: data.country, conn: c});
+                    c.send({type: 'auth_ok', max: maxPlayers});
                     peer.call(c.peer, myStream);
                     updateCounter();
-                    broadcastCounter();
+                    players.forEach(p => p.conn.send({type: 'counter', val: players.length+1}));
                     if(players.length === maxPlayers - 1) startGame();
                 }
                 if(data.type === 'chat') handleChat(data);
                 if(data.type === 'guess') checkGuess(data.word, data.name);
             });
         });
+        alert("ID DA SALA: " + myId + "\nMande para seus amigos!");
     }
 
     async function joinRoom() {
-        await initVoice();
-        conn = peer.connect(document.getElementById('join-id').value);
-        conn.on('open', () => conn.send({type: 'auth', name: document.getElementById('player-name').value, pass: document.getElementById('join-pass').value}));
+        await initAudio();
+        const hostId = document.getElementById('join-id').value;
+        const name = document.getElementById('player-name').value || "Player";
+        const country = document.getElementById('country-select').value;
+        
+        conn = peer.connect(hostId);
+        conn.on('open', () => conn.send({type: 'auth', name: name, country: country}));
         conn.on('data', data => {
             if(data.type === 'auth_ok') { maxPlayers = data.max; showScreen('game-screen'); }
             if(data.type === 'counter') updateCounter(data.val);
             if(data.type === 'start') handleStart(data);
-            if(data.type === 'chat') addMsg(data.name, data.text);
-            if(data.type === 'turn') updateTurnUI(data.name);
+            if(data.type === 'chat') addMsg(data.name, data.text, data.country);
             if(data.type === 'end') { alert(data.msg); location.reload(); }
         });
     }
 
     function updateCounter(val) {
         const count = val || (players.length + 1);
-        document.getElementById('player-counter').innerText = `Jogadores: ${count}/${maxPlayers}`;
-    }
-
-    function broadcastCounter() {
-        players.forEach(p => p.conn.send({type: 'counter', val: players.length + 1}));
+        document.getElementById('player-counter').innerText = `Players: ${count}/${maxPlayers}`;
     }
 
     function startGame() {
         currentWord = words[Math.floor(Math.random()*words.length)];
         const impIdx = Math.floor(Math.random() * maxPlayers);
-        allPlayers = [{id: myId, name: document.getElementById('player-name').value, isImp: (impIdx === 0)}, ...players.map((p, i) => ({id: p.id, name: p.name, isImp: (impIdx === i+1)}))];
-        players.forEach((p, i) => p.conn.send({type: 'start', isImp: (impIdx === i+1), word: currentWord, all: allPlayers}));
-        handleStart({isImp: (impIdx === 0), word: currentWord, all: allPlayers});
+        const myName = document.getElementById('player-name').value;
+        const myCountry = document.getElementById('country-select').value;
+        
+        const all = [{name: myName, country: myCountry, isImp: (impIdx===0)}, 
+                     ...players.map((p, i) => ({name: p.name, country: p.country, isImp: (impIdx===i+1)}))];
+
+        players.forEach((p, i) => p.conn.send({type: 'start', isImp: (impIdx === i+1), word: currentWord}));
+        handleStart({isImp: (impIdx === 0), word: currentWord});
     }
 
     function handleStart(data) {
-        amIImpostor = data.isImp; currentWord = data.word; allPlayers = data.all;
-        document.getElementById('status-msg').innerText = amIImpostor ? "VOCÊ É O IMPOSTOR!" : "PALAVRA: " + currentWord;
+        amIImpostor = data.isImp; currentWord = data.word;
+        const d = document.getElementById('role-display');
+        d.innerText = amIImpostor ? "VOCÊ É O IMPOSTOR!" : "PALAVRA: " + currentWord;
+        d.style.background = amIImpostor ? "#e74c3c" : "#27ae60";
         document.getElementById('btn-guess').style.display = amIImpostor ? "block" : "none";
-        if(gameMode === 'turno') { turnIndex = 0; if(isHost) startTurn(); }
-    }
-
-    function startTurn() {
-        const p = allPlayers[turnIndex];
-        players.forEach(c => c.conn.send({type: 'turn', name: p.name}));
-        updateTurnUI(p.name);
-        let time = 20; clearInterval(turnTimer);
-        turnTimer = setInterval(() => {
-            time--; document.getElementById('timer-display').innerText = time;
-            if(time <= 0) nextTurn();
-        }, 1000);
-    }
-
-    function nextTurn() { turnIndex = (turnIndex+1)%maxPlayers; startTurn(); }
-
-    function updateTurnUI(name) {
-        const isMe = (name === document.getElementById('player-name').value);
-        document.getElementById('status-msg').innerText = isMe ? "SUA VEZ! 🎤" : "Vez de: " + name;
+        document.getElementById('status-msg').innerText = "JOGO INICIADO!";
     }
 
     function sendMsg() {
         const i = document.getElementById('chat-input'); if(!i.value) return;
         const n = document.getElementById('player-name').value;
-        if(isHost) handleChat({name:n, text:i.value}); else conn.send({type: 'chat', name:n, text:i.value});
+        const c = document.getElementById('country-select').value;
+        if(isHost) handleChat({name:n, text:i.value, country:c}); else conn.send({type: 'chat', name:n, text:i.value, country:c});
         i.value = "";
     }
 
     function handleChat(data) {
-        addMsg(data.name, data.text);
-        if(isHost) { players.forEach(p => p.conn.send({type: 'chat', name:data.name, text:data.text})); if(gameMode==='turno') nextTurn(); }
+        addMsg(data.name, data.text, data.country);
+        if(isHost) players.forEach(p => p.conn.send({type: 'chat', ...data}));
     }
 
-    function addMsg(n, t) { const b = document.getElementById('chat-box'); b.innerHTML += `<div class="msg"><b>${n}:</b> ${t}</div>`; b.scrollTop = b.scrollHeight; }
+    function addMsg(n, t, c) {
+        const b = document.getElementById('chat-box');
+        b.innerHTML += `<div class="msg"><span>${c}</span> <b>${n}:</b> ${t}</div>`;
+        b.scrollTop = b.scrollHeight;
+    }
+
     function showScreen(s) { document.querySelectorAll('.screen').forEach(d => d.classList.remove('active')); document.getElementById(s).classList.add('active'); }
-    function copyInviteLink() { navigator.clipboard.writeText(window.location.href.split('?')[0] + "?room=" + myId); alert("Link copiado!"); }
 
     function checkGuess(g, name) {
         const win = g.toUpperCase().includes(currentWord);
-        const msg = win ? `IMPOSTOR GANHOU! Era ${currentWord}` : `IMPOSTOR ERROU! Era ${currentWord}`;
+        const msg = win ? `O IMPOSTOR GANHOU! A palavra era ${currentWord}` : `IMPOSTOR ERROU! Era ${currentWord}. Inocentes ganharam!`;
         if(isHost) players.forEach(p => p.conn.send({type: 'end', msg}));
         alert(msg); location.reload();
     }
-    
+
     function impostorGuess() {
-        const g = prompt("Palavra:"); if(g) { if(isHost) checkGuess(g, "Host"); else conn.send({type: 'guess', word: g, name: document.getElementById('player-name').value}); }
+        const g = prompt("Qual é a palavra secreta?");
+        if(g) { if(isHost) checkGuess(g, "Host"); else conn.send({type: 'guess', word: g, name: document.getElementById('player-name').value}); }
     }
 
     function openVote() {
-        let t = prompt("Nome para expulsar:");
-        if(t && isHost) handleVote(t); else if(t) conn.send({type: 'vote_cast', target: t});
+        const t = prompt("Nome de quem você quer expulsar:");
+        if(t) alert("Voto registrado em " + t + "! (Aguardando outros jogadores)");
     }
 </script>
 </body>
